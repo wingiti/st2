@@ -55,6 +55,10 @@ try:
 except ImportError as e:
     print('Failed to import pip: %s' % (text_type(e)))
     print('')
+    print('Version: %s' % str(sys.version_info))
+    print('')
+    print('Path: %s' % sys.executable)
+    print('')
     print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
 
