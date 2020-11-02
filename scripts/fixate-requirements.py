@@ -33,6 +33,7 @@ import argparse
 import os
 import os.path
 import sys
+import traceback
 
 from distutils.version import StrictVersion
 
@@ -59,6 +60,8 @@ try:
     from pip import __version__ as pip_version
 except ImportError as e:
     print('Failed to import pip: %s' % (text_type(e)))
+    print('')
+    traceback.print_exc()
     print('')
     print('Version: %s' % str(sys.version_info))
     print('')
