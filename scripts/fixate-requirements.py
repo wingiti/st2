@@ -49,6 +49,11 @@ else:
 
 OSCWD = os.path.abspath(os.curdir)
 
+def get_base_prefix_compat():
+    """Get base/real prefix, or sys.prefix if there is none."""
+    return getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
+
+
 try:
     import pip
     from pip import __version__ as pip_version
@@ -58,6 +63,10 @@ except ImportError as e:
     print('Version: %s' % str(sys.version_info))
     print('')
     print('Path: %s' % sys.executable)
+    print('')
+    print('Prefix: %s' % sys.prefix)
+    print('')
+    print('Base Prefix: %s' % get_base_prefix_compat())
     print('')
     print('Download pip:\n%s' % (GET_PIP))
     sys.exit(1)
