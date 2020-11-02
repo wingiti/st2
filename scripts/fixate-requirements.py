@@ -42,11 +42,12 @@ PY3 = sys.version_info[0] == 3
 
 if PY3:
     text_type = str
+    GET_PIP = '    curl https://bootstrap.pypa.io/get-pip.py | python3'
 else:
     text_type = unicode     # noqa  # pylint: disable=E0602
+    GET_PIP = '    curl https://bootstrap.pypa.io/get-pip.py | python'
 
 OSCWD = os.path.abspath(os.curdir)
-GET_PIP = '    curl https://bootstrap.pypa.io/get-pip.py | python'
 
 try:
     import pip
