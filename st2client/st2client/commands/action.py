@@ -34,7 +34,6 @@ from st2client import models
 from st2client.commands import resource
 from st2client.commands.resource import ResourceNotFoundError
 from st2client.commands.resource import ResourceViewCommand
-from st2client.commands.resource import ResourceGetCommand
 from st2client.commands.resource import add_auth_token_to_kwargs_from_cli
 from st2client.formatters import table
 from st2client.formatters import execution as execution_formatter

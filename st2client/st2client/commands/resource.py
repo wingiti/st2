@@ -420,8 +420,8 @@ class ResourceGetCommand(ResourceViewCommand):
 
         for instance in instances:
             self.print_output(instance, table.PropertyValueTable,
-                                attributes=args.attr, json=args.json, yaml=args.yaml,
-                                attribute_display_order=self.attribute_display_order)
+                              attributes=args.attr, json=args.json, yaml=args.yaml,
+                              attribute_display_order=self.attribute_display_order)
 
 
 class ContentPackResourceGetCommand(ResourceGetCommand):
