@@ -77,20 +77,42 @@ class TestResourceCommand(unittest2.TestCase):
     def test_command_get_by_id(self):
         args = self.parser.parse_args(['fakeresource', 'get', '123'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
-        instance = self.branch.commands['get'].run(args)
-        actual = instance.serialize()
+        instances = self.branch.commands['get'].run(args)
+        actual = instances[0].serialize()
         expected = json.loads(json.dumps(base.RESOURCES[0]))
         self.assertEqual(actual, expected)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',
         mock.MagicMock(return_value=base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK')))
-    def test_command_get(self):
+    def test_command_get_single(self):
         args = self.parser.parse_args(['fakeresource', 'get', 'abc'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
-        instance = self.branch.commands['get'].run(args)
+        instances = self.branch.commands['get'].run(args)
+        self.assertEqual(len(instances), 1)
+        instance = instances[0]
         actual = instance.serialize()
         expected = json.loads(json.dumps(base.RESOURCES[0]))
+        self.assertEqual(actual, expected)
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(side_effect=[
+            base.FakeResponse(json.dumps(base.RESOURCES[0]), 200, 'OK'),
+            base.FakeResponse(json.dumps(base.RESOURCES[1]), 200, 'OK'),
+        ]))
+    def test_command_get_multiple(self):
+        args = self.parser.parse_args(['fakeresource', 'get', 'abc', 'def'])
+        self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
+        instances = self.branch.commands['get'].run(args)
+        self.assertEqual(len(instances), 2)
+
+        actual = instances[0].serialize()
+        expected = json.loads(json.dumps(base.RESOURCES[0]))
+        self.assertEqual(actual, expected)
+
+        actual = instances[1].serialize()
+        expected = json.loads(json.dumps(base.RESOURCES[1]))
         self.assertEqual(actual, expected)
 
     @mock.patch.object(
@@ -100,8 +122,8 @@ class TestResourceCommand(unittest2.TestCase):
         args = self.parser.parse_args(['fakeresource', 'get', 'cba'])
         self.assertEqual(args.func, self.branch.commands['get'].run_and_print)
         self.assertRaises(resource.ResourceNotFoundError,
-                          self.branch.commands['get'].run,
-                          args)
+                        self.branch.commands['get'].run,
+                        args)
 
     @mock.patch.object(
         httpclient.HTTPClient, 'get',

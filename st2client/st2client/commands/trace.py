@@ -233,22 +233,20 @@ class TraceGetCommand(resource.ResourceGetCommand, SingleTraceDisplayMixin):
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        resource_id = getattr(args, self.pk_argument_name, None)
-        return self.get_resource_by_id(resource_id, **kwargs)
+        resource_ids = getattr(args, self.pk_argument_name, None)
+        resources = self._get_multiple_resources(resource_ids=resource_ids, kwargs=kwargs)
+        return resources
 
     @resource.add_auth_token_to_kwargs_from_cli
     def run_and_print(self, args, **kwargs):
-        trace = None
-        try:
-            trace = self.run(args, **kwargs)
-        except resource.ResourceNotFoundError:
-            self.print_not_found(args.id)
-            raise OperationFailureException('Trace %s not found.' % (args.id))
-        # First filter for causation chains
-        trace = self._filter_trace_components(trace=trace, args=args)
-        # next filter for display purposes
-        trace = self._apply_display_filters(trace=trace, args=args)
-        return self.print_trace_details(trace=trace, args=args)
+        traces = self.run(args, **kwargs)
+
+        for trace in traces:
+            # First filter for causation chains
+            trace = self._filter_trace_components(trace=trace, args=args)
+            # next filter for display purposes
+            trace = self._apply_display_filters(trace=trace, args=args)
+            self.print_trace_details(trace=trace, args=args)
 
     @staticmethod
     def _filter_trace_components(trace, args):

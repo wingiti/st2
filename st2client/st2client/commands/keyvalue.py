@@ -145,8 +145,10 @@ class KeyValuePairGetCommand(resource.ResourceGetCommand):
         decrypt = getattr(args, 'decrypt', False)
         scope = getattr(args, 'scope', DEFAULT_GET_SCOPE)
         kwargs['params'] = {'decrypt': str(decrypt).lower()}
-        kwargs['params']['scope'] = scope
-        return self.get_resource_by_id(id=resource_name, **kwargs)
+
+        resource_ids = getattr(args, self.pk_argument_name, None)
+        resources = self._get_multiple_resources(resource_ids=resource_ids, kwargs=kwargs)
+        return resources
 
 
 class KeyValuePairSetCommand(resource.ResourceCommand):

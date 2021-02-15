@@ -15,6 +15,10 @@
 
 from __future__ import absolute_import
 
+from typing import List
+from typing import Any
+from typing import Dict
+
 import os
 import abc
 import six
@@ -211,6 +215,35 @@ class ResourceCommand(commands.Command):
             raise ResourceNotFoundError(message)
         return instance
 
+    def _get_multiple_resources(self, resource_ids: List[str], kwargs: Dict[str, Any]) -> List[Any]:
+        """
+        Return multiple resource instances for the provided resource ids.
+
+        If a resource is not found, an error is printed. This method only throws when operating on
+        a single resource.
+
+        :param resource_ids: A list of resources to retrieve instances for.
+        :param kwargs: Dictionary with keyword arguments which are passed to get_resource_by_id.
+        """
+        more_than_one_resource = len(resource_ids) > 1
+
+        resources = []
+        for resource_id in resource_ids:
+            try:
+                resource = self.get_resource_by_id(resource_id, **kwargs)
+            except ResourceNotFoundError:
+                self.print_not_found(resource_id)
+
+                if not more_than_one_resource:
+                    # For backward compatibility reasons and to comply with common "get one"
+                    # behavior, we only fail if a single source is requested
+                    raise ResourceNotFoundError('Resource %s not found.' % resource_id)
+
+                continue
+
+            resources.append(resource)
+        return resources
+
     @abc.abstractmethod
     def run(self, args, **kwargs):
         raise NotImplementedError
@@ -379,25 +412,7 @@ class ResourceGetCommand(ResourceViewCommand):
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
         resource_ids = getattr(args, self.pk_argument_name, None)
-
-        more_than_one_resource = len(resource_ids) > 1
-
-        resources = []
-        for resource_id in resource_ids:
-            try:
-                resource = self.get_resource_by_id(resource_id, **kwargs)
-            except ResourceNotFoundError:
-                self.print_not_found(resource_id)
-
-                if not more_than_one_resource:
-                    # For backward compatibility reasons and to comply with common "get one"
-                    # behavior, we only fail if a single source is requested
-                    raise OperationFailureException('Resource %s not found.' % resource_id)
-
-                continue
-
-            resources.append(resource)
-
+        resources = self._get_multiple_resources(resource_ids=resource_ids, kwargs=kwargs)
         return resources
 
     def run_and_print(self, args, **kwargs):
