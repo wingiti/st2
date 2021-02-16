@@ -41,6 +41,66 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
+class TestCommands(base.BaseCLITestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestCommands, self).__init__(*args, **kwargs)
+        self.shell = Shell()
+
+    @mock.patch.object(
+        httpclient.HTTPClient, 'get',
+        mock.MagicMock(return_value=base.FakeResponse(json.dumps({}), 404, 'NOT FOUND')))
+    def test_all_resources_get_multi(self):
+        # 1. Verify that st2 <resource> get <id 1> ... <id n> notation works for all get commands
+        resources = [
+            ('action', models.Action),
+            ('action-alias', models.ActionAlias),
+            ('rule', models.Rule),
+            ('sensor', models.Sensor),
+            ('pack', models.Pack),
+            ('execution', models.Execution),
+            ('key', models.KeyValuePair),
+            ('webhook', models.Webhook),
+            ('trigger-instance', models.TriggerInstance),
+            ('trigger', models.TriggerType),
+            ('apikey', models.ApiKey),
+            ('inquiry', models.Inquiry),
+            ('policy', models.Policy),
+            ('policy-type', models.PolicyType),
+            ('timer', models.Timer),
+            ('trace', models.Trace),
+            ('runner', models.RunnerType),
+            ('rule-enforcement', models.RuleEnforcement),
+            ('role', models.Role),
+            ('role-assignment', models.UserRoleAssignment)
+        ]
+
+        for command_name, resource_ in resources:
+            display_name = resource_.get_display_name()
+
+            self._reset_output_streams()
+            return_code = self.shell.run([command_name, 'get', 'id1', 'id2', 'id3'])
+            self.assertEqual(return_code, 0)
+
+            stdout = self.stdout.getvalue()
+            self.assertTrue('%s "id1" is not found.' % (display_name) in stdout)
+            self.assertTrue('%s "id2" is not found.' % (display_name) in stdout)
+            self.assertTrue('%s "id3" is not found.' % (display_name) in stdout)
+            self._reset_output_streams()
+
+        # 2. When a single id is provided, command should return non-zero in case resource is not
+        # found
+        for command_name, resource_ in resources:
+            display_name = resource_.get_display_name()
+
+            self._reset_output_streams()
+            return_code = self.shell.run([command_name, 'get', 'id3'])
+            self.assertEqual(return_code, 1)
+
+            stdout = self.stdout.getvalue()
+            self.assertTrue('%s "id3" is not found.' % (display_name) in stdout)
+            self._reset_output_streams()
+
+
 class TestResourceCommand(unittest2.TestCase):
 
     def __init__(self, *args, **kwargs):
