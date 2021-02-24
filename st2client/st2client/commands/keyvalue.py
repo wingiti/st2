@@ -190,7 +190,7 @@ class KeyValuePairSetCommand(resource.ResourceCommand):
         instance.name = args.name
         instance.scope = args.scope
         instance.user = args.user
-        
+
         if not args.value:
             instance.value = input("Please insert value for key: ")
         else:
